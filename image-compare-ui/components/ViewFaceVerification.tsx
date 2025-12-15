@@ -63,9 +63,11 @@ export default function ViewFaceVerification() {
     formData.append("Image1", file1);
     formData.append("Image2", file2);
 
+    const COMPRACE_FACE_URL = process.env.NEXT_PUBLIC_COMPRACE_FACE_URL;
+
     try {
       // Hãy thay đổi PORT (7250 hoặc 44356) cho đúng với server đang chạy của bạn
-      const res = await fetch("https://facelab.histaff.vn/api/FaceCompare/Compare", {
+      const res = await fetch(`${COMPRACE_FACE_URL}/FaceCompare/Compare`, {
         method: "POST",
         body: formData,
       });

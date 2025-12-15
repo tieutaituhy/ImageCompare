@@ -13,9 +13,13 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowNextJs",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
+            policy.WithOrigins(
+                    "http://localhost:3000",
+                    "http://192.168.60.100:3000",
+                    "https://facelab.histaff.vn"
+                )
+                .AllowAnyHeader()
+                .AllowAnyMethod();
         });
 });
 

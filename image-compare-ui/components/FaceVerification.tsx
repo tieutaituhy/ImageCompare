@@ -46,8 +46,10 @@ export default function FaceVerification() {
     formData.append("sourceImage", file1);
     formData.append("targetImage", file2);
 
+    const COMPRACE_FACE_URL = process.env.NEXT_PUBLIC_COMPRACE_FACE_URL;
+
     try {
-      const res = await fetch("https://facelab.histaff.vn/api/FaceVerification/VerifyFace/verify", {
+      const res = await fetch(`${COMPRACE_FACE_URL}/FaceVerification/VerifyFace/verify`, {
         method: "POST",
         body: formData,
       });
