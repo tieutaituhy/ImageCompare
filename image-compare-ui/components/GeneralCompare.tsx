@@ -52,7 +52,7 @@ export default function GeneralCompare() {
     formData.append("file2", file2);
 
     try {
-      const res = await fetch("https://localhost:44356/api/ImageCompare/CompareImages/compare-similarity", {
+      const res = await fetch("https://facelab.histaff.vn/api/FaceVerification/VerifyFace/verify", {
         method: "POST",
         body: formData,
       });

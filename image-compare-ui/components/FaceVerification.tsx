@@ -47,7 +47,7 @@ export default function FaceVerification() {
     formData.append("targetImage", file2);
 
     try {
-      const res = await fetch("https://localhost:44356/api/FaceVerification/VerifyFace/verify", {
+      const res = await fetch("https://facelab.histaff.vn/api/FaceVerification/VerifyFace/verify", {
         method: "POST",
         body: formData,
       });

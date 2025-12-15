@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "publish:docker": "docker build -t localhost:5000/my-nextjs-app . && docker push localhost:5000/my-nextjs-app"
   },
   "dependencies": {
     "next": "16.0.7",
