@@ -114,8 +114,13 @@ namespace ImageCompare.Controllers
                 string uniqueFileName = $"{userId}_{DateTime.Now.Ticks}{Path.GetExtension(file.FileName)}";
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
+                // 4. Lưu file vào ổ cứng
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(fileStream);
+                }
 
-                // 4. Cập nhật thông tin ảnh cho User
+                // 5. Cập nhật thông tin ảnh cho User
                 // Đường dẫn tương đối để Client truy cập (vd: /avatars/1_123123.jpg)
                 user.AvatarUrl = $"/avatars/{uniqueFileName}";
                 user.IsAvatar = true;
@@ -130,14 +135,13 @@ namespace ImageCompare.Controllers
                 }
                 else
                 {
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
                     return BadRequest("Không tìm thấy khuôn mặt trong ảnh để tạo vector.");
                 }
 
-                // 6. Lưu file vào ổ cứng
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(fileStream);
-                }
 
                 _context.Users.Update(user);
                 await _context.SaveChangesAsync();
@@ -155,61 +159,62 @@ namespace ImageCompare.Controllers
             }
         }
 
-        // Hàm giả lập/gọi service AI để lấy vector
-        // Bạn cần thay thế logic bên trong bằng code gọi đến thư viện AI hoặc API (như CompreFace)
         private async Task<double[]> GenerateFaceVectorAsync(string imagePath)
         {
             try
             {
-                string baseUrl = _configuration["ConvertVector:BaseUrl"]; // VD: http://localhost:8000
-                string apiKey = _configuration["ConvertVector:ApiKey"];   // Key của dịch vụ Recognition
+                // Lấy cấu hình từ appsettings.json
+                string baseUrl = _configuration["ConvertVector:BaseUrl"];
+                string apiKey = _configuration["ConvertVector:ApiKey"];
 
-                // URL đầy đủ theo yêu cầu của bạn (bao gồm calculator để lấy vector)
-                var requestUrl = $"{baseUrl}/api/v1/recognition/recognize?face_plugins=landmarks,gender,age,pose,calculator";
+                if (string.IsNullOrEmpty(baseUrl) || string.IsNullOrEmpty(apiKey))
+                {
+                    Console.WriteLine("Chưa cấu hình API Key hoặc Base URL cho CompreFace.");
+                    return null;
+                }
+
+                // URL gọi Recognition Service (cần plugin calculator)
+                var requestUrl = $"{baseUrl}/api/v1/recognition/recognize?face_plugins=calculator,gender,age";
 
                 using (var client = new HttpClient())
                 {
-                    // Thêm Header API Key
                     client.DefaultRequestHeaders.Add("x-api-key", apiKey);
 
                     using (var form = new MultipartFormDataContent())
                     {
-                        // Đọc file ảnh từ đường dẫn đã lưu
+                        // Mở file stream để đọc ảnh từ ổ cứng server
                         using (var fileStream = new FileStream(imagePath, FileMode.Open, FileAccess.Read))
                         {
                             using (var streamContent = new StreamContent(fileStream))
                             {
-                                // CompreFace yêu cầu form-data key là "file"
+                                // Thêm Content-Type cho file (quan trọng để CompreFace không lỗi extension)
+                                // Bạn có thể dùng thư viện để detect mime type, hoặc hardcode nếu biết chắc là ảnh
+                                streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+
+                                // CompreFace yêu cầu param tên là "file"
+                                // Tên file truyền lên cũng nên chuẩn
                                 form.Add(streamContent, "file", Path.GetFileName(imagePath));
 
                                 // Gọi API
                                 var response = await client.PostAsync(requestUrl, form);
+                                var responseString = await response.Content.ReadAsStringAsync();
 
                                 if (!response.IsSuccessStatusCode)
                                 {
-                                    // Log lỗi nếu cần
-                                    var errorContent = await response.Content.ReadAsStringAsync();
-                                    Console.WriteLine($"CompreFace Error: {errorContent}");
+                                    Console.WriteLine($"CompreFace Error: {response.StatusCode} - {responseString}");
                                     return null;
                                 }
 
-                                // Đọc kết quả JSON
-                                var jsonString = await response.Content.ReadAsStringAsync();
+                                // Deserialize kết quả
+                                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                                var resultObj = JsonSerializer.Deserialize<CompreFaceRecognitionResponse>(responseString, options);
 
-                                // Cấu hình để parse JSON không phân biệt hoa thường
-                                var options = new JsonSerializerOptions
+                                // Lấy vector của khuôn mặt đầu tiên
+                                var firstFace = resultObj?.Result?.FirstOrDefault();
+
+                                if (firstFace != null && firstFace.Embedding != null)
                                 {
-                                    PropertyNameCaseInsensitive = true
-                                };
-
-                                var compreFaceResponse = JsonSerializer.Deserialize<CompreFaceRecognitionResponse>(jsonString, options);
-
-                                // Kiểm tra xem có tìm thấy khuôn mặt nào không
-                                if (compreFaceResponse != null && compreFaceResponse.Result != null && compreFaceResponse.Result.Count > 0)
-                                {
-                                    // Lấy vector của khuôn mặt đầu tiên tìm thấy
-                                    // Chuyển từ List<double> sang double[]
-                                    return compreFaceResponse.Result[0].Embedding.ToArray();
+                                    return firstFace.Embedding.ToArray();
                                 }
                             }
                         }
@@ -218,7 +223,7 @@ namespace ImageCompare.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception in GenerateFaceVectorAsync: {ex.Message}");
+                Console.WriteLine($"Exception calling AI: {ex.Message}");
             }
 
             return null;
@@ -237,8 +242,7 @@ namespace ImageCompare.Controllers
                 return Unauthorized("Không xác định được người dùng.");
 
             var user = _context.Users.Find(userId);
-            if (user == null)
-                return NotFound("User không tồn tại.");
+            if (user == null) return NotFound("User không tồn tại.");
 
             try
             {
@@ -251,15 +255,27 @@ namespace ImageCompare.Controllers
                 string uniqueFileName = $"{userId}_{DateTime.Now.Ticks}{Path.GetExtension(file.FileName)}";
                 string newFilePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                // 3. Gọi AI để lấy Vector từ ảnh MỚI vừa lưu
+                // 3. Lưu ảnh mới tạm thời vào ổ cứng
+                using (var fileStream = new FileStream(newFilePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(fileStream);
+                }
+
+                // 4. Gọi AI để lấy Vector từ ảnh MỚI vừa lưu
                 var newVector = await GenerateFaceVectorAsync(newFilePath);
 
+                // --- QUAN TRỌNG: Kiểm tra kết quả AI ---
                 if (newVector == null || newVector.Length == 0)
                 {
+                    // Nếu ảnh mới không có mặt người -> Xóa ngay ảnh rác vừa lưu
+                    if (System.IO.File.Exists(newFilePath))
+                    {
+                        System.IO.File.Delete(newFilePath);
+                    }
                     return BadRequest("Ảnh mới không rõ khuôn mặt. Vui lòng chọn ảnh khác.");
                 }
 
-                // 4. Nếu AI ok -> Tiến hành xóa ảnh CŨ của user (dọn dẹp ổ cứng)
+                // 5. Nếu AI ok -> Tiến hành xóa ảnh CŨ của user (dọn dẹp ổ cứng)
                 if (!string.IsNullOrEmpty(user.AvatarUrl))
                 {
                     // AvatarUrl lưu dạng "/avatars/abc.jpg", cần chuyển về đường dẫn vật lý
@@ -273,16 +289,10 @@ namespace ImageCompare.Controllers
                     }
                 }
 
-                // 5. Cập nhật thông tin vào Database
+                // 6. Cập nhật thông tin vào Database
                 user.AvatarUrl = $"/avatars/{uniqueFileName}";
-                user.FaceEmbeddings = newVector; // Cập nhật vector mới
+                user.FaceEmbeddings = newVector;
                 user.IsAvatar = true;
-
-                // 6. Lưu ảnh mới tạm thời vào ổ cứng
-                using (var fileStream = new FileStream(newFilePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(fileStream);
-                }
 
                 _context.Users.Update(user);
                 await _context.SaveChangesAsync();
