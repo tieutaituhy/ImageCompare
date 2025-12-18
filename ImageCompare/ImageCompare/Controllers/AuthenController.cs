@@ -224,6 +224,82 @@ namespace ImageCompare.Controllers
             return null;
         }
 
+        [HttpPost("update-avatar")]
+        [Authorize] // Yêu cầu phải đăng nhập
+        public async Task<IActionResult> UpdateAvatar(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("Vui lòng chọn file ảnh mới.");
+
+            // 1. Lấy ID user từ Token
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
+                return Unauthorized("Không xác định được người dùng.");
+
+            var user = _context.Users.Find(userId);
+            if (user == null)
+                return NotFound("User không tồn tại.");
+
+            try
+            {
+                // 2. Chuẩn bị đường dẫn lưu ảnh mới
+                string uploadsFolder = Path.Combine(_environment.WebRootPath, "avatars");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                // Tạo tên file ngẫu nhiên để tránh trình duyệt cache ảnh cũ
+                string uniqueFileName = $"{userId}_{DateTime.Now.Ticks}{Path.GetExtension(file.FileName)}";
+                string newFilePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                // 3. Gọi AI để lấy Vector từ ảnh MỚI vừa lưu
+                var newVector = await GenerateFaceVectorAsync(newFilePath);
+
+                if (newVector == null || newVector.Length == 0)
+                {
+                    return BadRequest("Ảnh mới không rõ khuôn mặt. Vui lòng chọn ảnh khác.");
+                }
+
+                // 4. Nếu AI ok -> Tiến hành xóa ảnh CŨ của user (dọn dẹp ổ cứng)
+                if (!string.IsNullOrEmpty(user.AvatarUrl))
+                {
+                    // AvatarUrl lưu dạng "/avatars/abc.jpg", cần chuyển về đường dẫn vật lý
+                    // TrimStart('/') để tránh lỗi đường dẫn
+                    string oldFileName = user.AvatarUrl.TrimStart('/').Replace("avatars/", "");
+                    string oldFilePath = Path.Combine(uploadsFolder, oldFileName);
+
+                    if (System.IO.File.Exists(oldFilePath))
+                    {
+                        System.IO.File.Delete(oldFilePath);
+                    }
+                }
+
+                // 5. Cập nhật thông tin vào Database
+                user.AvatarUrl = $"/avatars/{uniqueFileName}";
+                user.FaceEmbeddings = newVector; // Cập nhật vector mới
+                user.IsAvatar = true;
+
+                // 6. Lưu ảnh mới tạm thời vào ổ cứng
+                using (var fileStream = new FileStream(newFilePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(fileStream);
+                }
+
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    IsSuccess = true,
+                    Message = "Cập nhật ảnh đại diện thành công.",
+                    AvatarUrl = user.AvatarUrl
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
+
         [HttpPost("verify-face-vector")]
         [Authorize] // Bắt buộc phải có Token
         public IActionResult VerifyFaceVector([FromBody] VerifyVectorRequest request)
