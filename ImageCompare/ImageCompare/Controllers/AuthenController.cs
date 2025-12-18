@@ -61,6 +61,7 @@ namespace ImageCompare.Controllers
                 Id = user.Id,
                 Username = user.Username,
                 IsAvatar = user.IsAvatar,
+                AvatarUrl = user.AvatarUrl,
                 Token = tokenString
             });
         }
