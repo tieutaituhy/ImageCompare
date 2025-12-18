@@ -61,6 +61,8 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
