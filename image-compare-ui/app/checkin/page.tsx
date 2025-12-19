@@ -246,7 +246,7 @@ export default function CheckinPage() {
                 <div className="w-full max-w-2xl mb-4 bg-white rounded-lg shadow-md p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <img
-                            src={`https://localhost:44356${user.avatarUrl}`}
+                            src={`${process.env.NEXT_PUBLIC_COMPRACE_FACE_IMAGE || 'https://localhost:44356'}/${user.avatarUrl}`}
                             alt="Avatar"
                             className="w-10 h-10 rounded-full object-cover"
                         />

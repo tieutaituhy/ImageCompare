@@ -29,13 +29,12 @@ export function saveAuthData(authResponse: AuthResponse): void {
     if (typeof window === 'undefined')
         return;
 
-    const avatarUrl = authResponse.isAvatar ? authResponse.avatarUrl : '';
     const authData: AuthData = {
         user: {
             id: authResponse.id,
             username: authResponse.username,
             isAvatar: authResponse.isAvatar,
-            avatarUrl: avatarUrl,
+            avatarUrl: authResponse.avatarUrl,
         },
         token: authResponse.token,
     };

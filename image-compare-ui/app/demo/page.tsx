@@ -40,7 +40,7 @@ export default function DemoPage() {
                     <div className="flex items-center gap-3">
                         {user.isAvatar ? (
                             <img
-                                src={`https://localhost:44356${user.avatarUrl}`}
+                                src={`${process.env.NEXT_PUBLIC_COMPRACE_FACE_IMAGE || 'https://localhost:44356'}/${user.avatarUrl}`}
                                 alt="Avatar"
                                 className="w-10 h-10 rounded-full object-cover"
                             />
