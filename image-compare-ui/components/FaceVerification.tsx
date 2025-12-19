@@ -56,7 +56,7 @@ export default function FaceVerification() {
     formData.append("targetImage", file2, "target_image.jpg");
 
     try {
-      const res = await fetch("/api/face/verify-faces", {
+      const res = await fetch("/api/frontend/face/verify-faces", {
         method: "POST",
         body: formData,
       });

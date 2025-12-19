@@ -105,7 +105,7 @@ export default function CheckinPage() {
             formData.append('file', file);
 
             // Step 1: Get face embedding from CompreFace
-            const recognizeResponse = await fetch('/api/face/recognize', {
+            const recognizeResponse = await fetch('/api/frontend/face/recognize', {
                 method: 'POST',
                 body: formData,
             });
@@ -126,7 +126,7 @@ export default function CheckinPage() {
                 throw new Error('No authentication token');
             }
 
-            const verifyResponse = await fetch('/api/face/verify', {
+            const verifyResponse = await fetch('/api/frontend/face/verify', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -173,7 +173,11 @@ export default function CheckinPage() {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
 
-            // Draw current video frame to canvas
+            // Flip the image horizontally to correct orientation
+            context.translate(canvas.width, 0);
+            context.scale(-1, 1);
+
+            // Draw current video frame to canvas (will be flipped back)
             context.drawImage(video, 0, 0);
 
             // Convert canvas to blob
@@ -188,7 +192,7 @@ export default function CheckinPage() {
             const formData = new FormData();
             formData.append('file', blob, 'capture.jpg');
 
-            const recognizeResponse = await fetch('/api/face/recognize', {
+            const recognizeResponse = await fetch('/api/frontend/face/recognize', {
                 method: 'POST',
                 body: formData,
             });
@@ -209,7 +213,7 @@ export default function CheckinPage() {
                 throw new Error('No authentication token');
             }
 
-            const verifyResponse = await fetch('/api/face/verify', {
+            const verifyResponse = await fetch('/api/frontend/face/verify', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -286,6 +290,7 @@ export default function CheckinPage() {
                                 playsInline
                                 muted
                                 className="w-full h-full object-cover"
+                                style={{ transform: 'scaleX(-1)' }}
                             />
                             {processing && (
                                 <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">

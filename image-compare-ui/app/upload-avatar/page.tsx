@@ -59,7 +59,7 @@ export default function UploadAvatarPage() {
             formData.append('file', file);
 
             // Call BFF API
-            const response = await fetch('/api/auth/upload-avatar', {
+            const response = await fetch('/api/frontend/auth/upload-avatar', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
