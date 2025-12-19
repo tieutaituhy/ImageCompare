@@ -53,12 +53,23 @@ export default function Home() {
               <p className="text-xs text-gray-500">ID: {user.id}</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-          >
-            Logout
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.push('/profile')}
+              className="px-4 py-2 bg-indigo-500 text-white text-sm rounded-lg hover:bg-indigo-600 transition-colors flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Profile
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       )}
 
@@ -82,10 +93,10 @@ export default function Home() {
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-3">
-            Face Check-in
+            Demo Check-in
           </h2>
           <p className="text-gray-600 mb-6">
-            Xác thực khuôn mặt với camera và AI. Chớp mắt để check-in nhanh chóng và an toàn hoặc tải ảnh để check-in.
+            Xác thực khuôn mặt với camera và AI.
           </p>
           <button
             onClick={() => router.push('/checkin')}
@@ -104,10 +115,10 @@ export default function Home() {
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-3">
-            Face Recognition Demo
+            So sánh Giữa 2 ảnh
           </h2>
           <p className="text-gray-600 mb-6">
-            Test our AI-powered face recognition system using CompreFace. Compare faces, detect age and gender.
+            So sánh giữa 2 ảnh với AI.
           </p>
           <button
             onClick={handleGoToDemo}
