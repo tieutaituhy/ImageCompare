@@ -34,7 +34,8 @@ export async function POST(request: NextRequest) {
         backendFormData.append('file', file);
 
         // Call backend API
-        const backendUrl = 'https://localhost:44356/api/Auth/upload-avatar';
+        const url = process.env.NEXT_PUBLIC_COMPRACE_FACE_URL || 'https://localhost:44356/api';
+        const backendUrl = `${url}/Auth/upload-avatar`;
 
         const response = await fetch(backendUrl, {
             method: 'POST',

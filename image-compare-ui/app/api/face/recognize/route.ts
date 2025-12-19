@@ -18,8 +18,8 @@ export async function POST(request: NextRequest) {
         compreFaceFormData.append('file', file);
 
         // CompreFace API configuration
-        const compreFaceUrl = process.env.COMPREFACE_API_URL || 'http://192.168.60.100:8000';
-        const apiKey = process.env.COMPREFACE_API_KEY || '4eb453f7-6443-4bd0-9034-93dfe004c651';
+        const compreFaceUrl = process.env.NEXT_PUBLIC_COMPRACE_FACE_CORE || 'http://192.168.60.100:8000';
+        const apiKey = process.env.NEXT_PUBLIC_COMPRACE_FACE_API_KEY || '4eb453f7-6443-4bd0-9034-93dfe004c651';
 
         // Call CompreFace API
         const response = await fetch(

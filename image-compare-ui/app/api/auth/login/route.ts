@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Gọi backend API
-        const backendUrl = 'https://localhost:44356/api/Auth/login';
+        const url = process.env.NEXT_PUBLIC_COMPRACE_FACE_URL || 'https://localhost:44356/api';
+        const backendUrl = `${url}/Auth/login`;
 
         const response = await fetch(backendUrl, {
             method: 'POST',

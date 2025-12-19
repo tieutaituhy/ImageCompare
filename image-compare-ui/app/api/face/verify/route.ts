@@ -30,7 +30,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Call backend API
-        const backendUrl = 'https://localhost:44356/api/Auth/verify-face-vector';
+        const url = process.env.NEXT_PUBLIC_COMPRACE_FACE_URL || 'https://localhost:44356/api';
+        const backendUrl = `${url}/Auth/verify-face-vector`;
 
         const response = await fetch(backendUrl, {
             method: 'POST',

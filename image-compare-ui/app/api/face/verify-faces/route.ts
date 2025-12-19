@@ -28,11 +28,12 @@ export async function POST(request: NextRequest) {
         compreFaceFormData.append('targetImage', targetImage);
 
         // CompreFace API configuration
-        const compreFaceUrl = process.env.NEXT_PUBLIC_COMPRACE_FACE_URL || 'https://192.168.60.100:7250';
+        const url = process.env.NEXT_PUBLIC_COMPRACE_FACE_URL || 'https://192.168.60.100:7250';
+        const compreFaceUrl = `${url}/FaceVerification/VerifyFace/verify`;
 
         // Call CompreFace API
         const response = await fetch(
-            `${compreFaceUrl}/FaceVerification/VerifyFace/verify`,
+            compreFaceUrl,
             {
                 method: 'POST',
                 body: compreFaceFormData,
