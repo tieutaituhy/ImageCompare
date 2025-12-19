@@ -96,31 +96,31 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Image Comparison (Coming Soon) */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 opacity-75">
+        {/* Face Check-in */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 hover:shadow-2xl transition-shadow">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-3">
-            Image Comparison
+            Face Check-in
           </h2>
           <p className="text-gray-600 mb-6">
-            Advanced image comparison tools for detailed analysis and similarity detection.
+            Xác thực khuôn mặt với camera và AI. Chớp mắt để check-in nhanh chóng và an toàn hoặc tải ảnh để check-in.
           </p>
           <button
-            disabled
-            className="w-full bg-gray-300 text-gray-500 py-3 px-6 rounded-lg font-medium cursor-not-allowed"
+            onClick={() => router.push('/checkin')}
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
-            Coming Soon
+            Start Check-in →
           </button>
         </div>
       </div>
 
       {/* Footer Info */}
       <div className="mt-12 text-center text-gray-500 text-sm">
-        <p>Powered by AI Technology • CompreFace Integration</p>
+        <p>Lab by Trong - CompreFace Integration</p>
       </div>
     </main>
   );
